@@ -10,7 +10,22 @@ const View = {
             statusFilter: document.getElementById('statusFilter'),
             tagFilters: document.getElementById('tagFilters'),
             totalCount: document.getElementById('totalCount'),
-            toggleBtn: document.getElementById('toggleConnections')
+            toggleBtn: document.getElementById('toggleConnections'),
+            // New Elements
+            loginBtn: document.getElementById('loginBtn'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            userProfile: document.getElementById('userProfile'),
+            editorControls: document.getElementById('editorControls'),
+            uploadModal: document.getElementById('uploadModal'),
+            openUploadModal: document.getElementById('openUploadModal'),
+            closeModal: document.querySelector('.modal-close'),
+            dropZone: document.getElementById('dropZone'),
+            fileInput: document.getElementById('fileInput'),
+            uploadProgress: document.getElementById('uploadProgress'),
+            progressFill: document.querySelector('.progress-fill'),
+            uploadStatus: document.getElementById('uploadStatus'),
+            conflictAlert: document.getElementById('conflictAlert'),
+            alertClose: document.querySelector('.alert-close')
         };
         this.svgLayer = this.elements.svgLayer;
         this.initSVGCanvas();
@@ -91,7 +106,7 @@ const View = {
         this.svgLayer.innerHTML = '';
     },
     
-    drawRouteLine(sourceEl, targetEl) {
+    drawRouteLine(sourceEl, targetEl, style = 'curved') {
         const rect1 = sourceEl.getBoundingClientRect();
         const rect2 = targetEl.getBoundingClientRect();
 
@@ -102,20 +117,33 @@ const View = {
 
         const midX = (x1 + x2) / 2;
         const midY = (y1 + y2) / 2;
-        
-        const controlOffset = 30;
-        const dx = x2 - x1;
-        const ctrlX1 = x1 + dx * 0.25;
-        const ctrlY1 = y1 + (Math.random() > 0.5 ? controlOffset : -controlOffset);
-        const ctrlX2 = x1 + dx * 0.75;
-        const ctrlY2 = y2 + (Math.random() > 0.5 ? -controlOffset : controlOffset);
+
+        let pathD;
+        if (style === 'ortho') {
+            const horiz = Math.abs(x2 - x1) > Math.abs(y2 - y1);
+            if (horiz) {
+                const midX2 = midX;
+                pathD = `M ${x1} ${y1} L ${midX2} ${y1} L ${midX2} ${y2} L ${x2} ${y2}`;
+            } else {
+                const midY2 = midY;
+                pathD = `M ${x1} ${y1} L ${x1} ${midY2} L ${x2} ${midY2} L ${x2} ${y2}`;
+            }
+        } else {
+            const controlOffset = 30;
+            const dx = x2 - x1;
+            const ctrlX1 = x1 + dx * 0.25;
+            const ctrlY1 = y1 + (Math.random() > 0.5 ? controlOffset : -controlOffset);
+            const ctrlX2 = x1 + dx * 0.75;
+            const ctrlY2 = y2 + (Math.random() > 0.5 ? -controlOffset : controlOffset);
+            pathD = `M ${x1} ${y1} C ${ctrlX1} ${ctrlY1}, ${ctrlX2} ${ctrlY2}, ${x2} ${y2}`;
+        }
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M ${x1} ${y1} C ${ctrlX1} ${ctrlY1}, ${ctrlX2} ${ctrlY2}, ${x2} ${y2}`);
-        path.setAttribute('class', 'route-line');
+        path.setAttribute('d', pathD);
+        path.setAttribute('class', `route-line ${style === 'ortho' ? 'ortho' : ''}`);
         path.setAttribute('fill', 'none');
         this.svgLayer.appendChild(path);
-        
+
         const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         dot.setAttribute('cx', midX);
         dot.setAttribute('cy', midY);
@@ -124,13 +152,13 @@ const View = {
         this.svgLayer.appendChild(dot);
     },
     
-    showFocusView(article) {
+    showFocusView(article, userRole) {
         this.focusMode = true;
         document.body.classList.add('focus-mode-active');
         
         const overlay = document.createElement('div');
         overlay.id = 'focusOverlay';
-        overlay.innerHTML = this.createFocusViewHTML(article);
+        overlay.innerHTML = this.createFocusViewHTML(article, userRole);
         document.body.appendChild(overlay);
         
         requestAnimationFrame(() => {
@@ -140,12 +168,22 @@ const View = {
         
         overlay.querySelector('.focus-close').onclick = () => Presenter.closeFocusView();
         overlay.querySelector('.focus-backdrop').onclick = () => Presenter.closeFocusView();
-        overlay.querySelectorAll('.status-btn').forEach(btn => {
-            btn.onclick = () => Presenter.onStatusButtonClick(btn.dataset.status);
-        });
+        
+        if (userRole === 'Editor') {
+            const statusDropdown = overlay.querySelector('#focusStatusDropdown');
+            statusDropdown.onchange = () => Presenter.onStatusButtonClick(statusDropdown.value);
+            
+            const deleteBtn = overlay.querySelector('#deleteArticleBtn');
+            deleteBtn.onclick = () => {
+                if (confirm('Are you sure you want to delete this intelligence node?')) {
+                    Presenter.onDeleteArticle(article.id);
+                }
+            };
+        }
     },
     
-    createFocusViewHTML(article) {
+    createFocusViewHTML(article, userRole) {
+        const isEditor = userRole === 'Editor';
         return `
             <div class="focus-backdrop"></div>
             <div class="focus-container">
@@ -183,9 +221,21 @@ const View = {
                     </ul>
                 </div>
                 <div class="focus-actions">
-                    <button class="status-btn draft" data-status="Draft">Set to Draft</button>
-                    <button class="status-btn reviewed" data-status="Reviewed">Mark Reviewed</button>
-                    <button class="status-btn published" data-status="Published">Publish</button>
+                    ${isEditor ? `
+                        <div class="editor-actions">
+                            <div class="status-selector">
+                                <label for="focusStatusDropdown">Update Status</label>
+                                <select id="focusStatusDropdown">
+                                    <option value="Draft" ${article.status === 'Draft' ? 'selected' : ''}>Draft</option>
+                                    <option value="Reviewed" ${article.status === 'Reviewed' ? 'selected' : ''}>Reviewed</option>
+                                    <option value="Published" ${article.status === 'Published' ? 'selected' : ''}>Published</option>
+                                </select>
+                            </div>
+                            <button id="deleteArticleBtn" class="dhl-btn delete-btn">Delete Node</button>
+                        </div>
+                    ` : `
+                        <p class="viewer-note">Viewing as Guest. Login to modify.</p>
+                    `}
                 </div>
             </div>
         `;
@@ -199,6 +249,49 @@ const View = {
         }
         document.body.classList.remove('focus-mode-active');
         this.focusMode = false;
+    },
+    
+    updateAuthUI(role) {
+        if (role === 'Editor') {
+            this.elements.loginBtn.classList.add('hidden');
+            this.elements.userProfile.classList.remove('hidden');
+            this.elements.editorControls.classList.remove('hidden');
+        } else {
+            this.elements.loginBtn.classList.remove('hidden');
+            this.elements.userProfile.classList.add('hidden');
+            this.elements.editorControls.classList.add('hidden');
+        }
+    },
+    
+    showConflictAlert(conflicts) {
+        if (conflicts.length > 0) {
+            const message = `Warning: Potential conflict with existing SOP detected (${conflicts[0].title}). Shared tags >= 2.`;
+            this.elements.conflictAlert.querySelector('.alert-message').textContent = message;
+            this.elements.conflictAlert.classList.remove('hidden');
+        }
+    },
+    
+    hideConflictAlert() {
+        this.elements.conflictAlert.classList.add('hidden');
+    },
+    
+    showUploadModal() {
+        this.elements.uploadModal.classList.remove('hidden');
+        this.elements.uploadStatus.innerHTML = '';
+        this.elements.uploadProgress.classList.add('hidden');
+    },
+    
+    hideUploadModal() {
+        this.elements.uploadModal.classList.add('hidden');
+    },
+    
+    updateUploadProgress(percent) {
+        this.elements.uploadProgress.classList.remove('hidden');
+        this.elements.progressFill.style.width = `${percent}%`;
+    },
+    
+    showUploadStatus(message, type) {
+        this.elements.uploadStatus.innerHTML = `<span class="status-${type}">${message}</span>`;
     },
     
     drawStepConnection(mainCard, stepNode) {
@@ -231,6 +324,27 @@ const View = {
     bindEvents(presenter) {
         this.elements.statusFilter.addEventListener('change', () => presenter.onStatusFilterChange(this.elements.statusFilter.value));
         this.elements.toggleBtn.addEventListener('click', () => presenter.onToggleConnections());
+        
+        // Auth events
+        this.elements.loginBtn.onclick = () => presenter.onLogin();
+        this.elements.logoutBtn.onclick = () => presenter.onLogout();
+        
+        // Upload events
+        this.elements.openUploadModal.onclick = () => this.showUploadModal();
+        this.elements.closeModal.onclick = () => this.hideUploadModal();
+        this.elements.alertClose.onclick = () => this.hideConflictAlert();
+        
+        this.elements.dropZone.onclick = () => this.elements.fileInput.click();
+        this.elements.fileInput.onchange = (e) => presenter.onFileUpload(e.target.files[0]);
+        
+        this.elements.dropZone.ondragover = (e) => { e.preventDefault(); this.elements.dropZone.classList.add('dragover'); };
+        this.elements.dropZone.ondragleave = () => this.elements.dropZone.classList.remove('dragover');
+        this.elements.dropZone.ondrop = (e) => {
+            e.preventDefault();
+            this.elements.dropZone.classList.remove('dragover');
+            presenter.onFileUpload(e.dataTransfer.files[0]);
+        };
+
         window.addEventListener('resize', () => {
             if (this.focusMode) {
                 this.clearSVG();

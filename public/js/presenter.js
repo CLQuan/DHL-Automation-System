@@ -7,6 +7,7 @@ const Presenter = {
     init() {
         View.init();
         View.bindEvents(this);
+        this.updateAuthView();
         this.loadInitialData();
     },
     
@@ -16,14 +17,15 @@ const Presenter = {
     },
     
     refreshView() {
-        View.updateTotalCount(Model.articles.length);
+        const visibleArticles = Model.getVisibleArticles(this.statusFilter);
+        View.updateTotalCount(visibleArticles.length);
         View.updateToggleButton(this.showConnections);
         View.renderTagFilters(Model.getAllTags(), this.activeTagFilter);
         this.renderFilteredArticles();
     },
     
     renderFilteredArticles() {
-        let filtered = Model.getByStatus(this.statusFilter);
+        let filtered = Model.getVisibleArticles(this.statusFilter);
         if (this.activeTagFilter) {
             filtered = filtered.filter(a => a.tags.includes(this.activeTagFilter));
         }
@@ -58,23 +60,23 @@ const Presenter = {
     drawConnections(activeArticle) {
         View.clearSVG();
         View.clearAllHighlights();
-        
+
         const activeCard = View.getCardById(activeArticle.id);
         if (activeCard) View.highlightCard(activeCard);
-        
+
         const related = Model.getRelated(activeArticle);
         related.forEach(rel => {
             const relCard = View.getCardById(rel.id);
             if (relCard) {
                 View.highlightCard(relCard);
-                View.drawRouteLine(activeCard, relCard);
+                View.drawRouteLine(activeCard, relCard, 'ortho');
             }
         });
     },
     
     onCardClick(article) {
         this.currentFocusArticle = article;
-        View.showFocusView(article);
+        View.showFocusView(article, Model.userRole);
     },
     
     drawFocusConnections() {
@@ -100,12 +102,67 @@ const Presenter = {
     async onStatusButtonClick(newStatus) {
         if (!this.currentFocusArticle) return;
         
-        const updated = await Model.updateArticleStatus(this.currentFocusArticle.id, newStatus);
-        if (updated) {
-            await Model.fetchAll();
-            this.refreshView();
-            this.closeFocusView();
+        try {
+            const updated = await Model.updateArticleStatus(this.currentFocusArticle.id, newStatus);
+            if (updated) {
+                await Model.fetchAll();
+                this.refreshView();
+                this.closeFocusView();
+            }
+        } catch (err) {
+            alert(err.message);
         }
+    },
+    
+    async onDeleteArticle(id) {
+        try {
+            const success = await Model.deleteArticle(id);
+            if (success) {
+                this.closeFocusView();
+                this.refreshView();
+            }
+        } catch (err) {
+            alert(err.message);
+        }
+    },
+    
+    async onFileUpload(file) {
+        if (!file) return;
+        
+        View.updateUploadProgress(30);
+        try {
+            const newArticle = await Model.uploadFile(file);
+            View.updateUploadProgress(100);
+            View.showUploadStatus('AI Transformation Complete!', 'success');
+            
+            // Check for conflicts
+            const conflicts = Model.checkConflicts(newArticle.tags);
+            View.showConflictAlert(conflicts);
+            
+            setTimeout(() => {
+                View.hideUploadModal();
+                this.refreshView();
+            }, 1500);
+        } catch (err) {
+            View.showUploadStatus(err.message, 'error');
+            View.updateUploadProgress(0);
+        }
+    },
+    
+    onLogin() {
+        Model.loginAsEditor();
+        this.updateAuthView();
+        this.refreshView();
+    },
+    
+    onLogout() {
+        Model.logout();
+        this.updateAuthView();
+        this.refreshView();
+    },
+    
+    updateAuthView() {
+        View.updateAuthUI(Model.userRole);
     },
     
     onStatusFilterChange(status) {

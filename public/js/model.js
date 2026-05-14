@@ -2,6 +2,7 @@ const API_BASE = '/api';
 
 const Model = {
     articles: [],
+    userRole: localStorage.getItem('dhl_user_role') || 'Guest', // Default role
     
     async fetchAll() {
         try {
@@ -15,24 +16,35 @@ const Model = {
         }
     },
     
-    async createArticle(data) {
+    async uploadFile(file) {
         try {
-            const response = await fetch(`${API_BASE}/articles`, {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch(`${API_BASE}/upload`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: formData
             });
-            if (!response.ok) throw new Error('Failed to create article');
+            
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || 'Upload failed');
+            }
+            
             const newArticle = await response.json();
             this.articles.push(newArticle);
             return newArticle;
         } catch (err) {
-            console.error('Model create error:', err);
-            return null;
+            console.error('Model upload error:', err);
+            throw err;
         }
     },
     
     async updateArticleStatus(id, status) {
+        if (this.userRole !== 'Editor') {
+            throw new Error('Access Denied: Only Editors can update status.');
+        }
+
         try {
             const response = await fetch(`${API_BASE}/articles/${id}`, {
                 method: 'PUT',
@@ -51,6 +63,10 @@ const Model = {
     },
     
     async deleteArticle(id) {
+        if (this.userRole !== 'Editor') {
+            throw new Error('Access Denied: Only Editors can delete nodes.');
+        }
+
         try {
             const response = await fetch(`${API_BASE}/articles/${id}`, {
                 method: 'DELETE'
@@ -64,18 +80,29 @@ const Model = {
         }
     },
     
+    loginAsEditor() {
+        this.userRole = 'Editor';
+        localStorage.setItem('dhl_user_role', 'Editor');
+    },
+    
+    logout() {
+        this.userRole = 'Guest';
+        localStorage.setItem('dhl_user_role', 'Guest');
+    },
+    
     getById(id) {
         return this.articles.find(a => a.id === id);
     },
     
-    getByStatus(status) {
-        if (status === 'all') return this.articles;
-        return this.articles.filter(a => a.status === status);
-    },
-    
-    getByTag(tag) {
-        if (!tag) return this.articles;
-        return this.articles.filter(a => a.tags.includes(tag));
+    getVisibleArticles(statusFilter = 'all') {
+        // Guest users only see Published articles
+        if (this.userRole !== 'Editor') {
+            return this.articles.filter(a => a.status === 'Published');
+        }
+        
+        // Editors see based on filter
+        if (statusFilter === 'all') return this.articles;
+        return this.articles.filter(a => a.status === statusFilter);
     },
     
     getRelated(article) {
@@ -85,7 +112,17 @@ const Model = {
         );
     },
     
+    checkConflicts(tags) {
+        // Scenario 1 & Bonus 5.3: Check if new draft shares > 2 tags with existing Published articles
+        const published = this.articles.filter(a => a.status === 'Published');
+        return published.filter(p => {
+            const sharedTags = p.tags.filter(t => tags.includes(t));
+            return sharedTags.length >= 2;
+        });
+    },
+    
     getAllTags() {
-        return [...new Set(this.articles.flatMap(a => a.tags))];
+        const visible = this.getVisibleArticles();
+        return [...new Set(visible.flatMap(a => a.tags))];
     }
 };

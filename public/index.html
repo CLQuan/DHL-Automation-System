@@ -8,16 +8,37 @@
 </head>
 <body>
     <header class="dhl-header">
-        <div class="logo">DHL DAC 3.0</div>
-        <div class="subtitle">Knowledge Base Builder</div>
+        <div class="header-left">
+            <div class="logo">DHL DAC 3.0</div>
+            <div class="subtitle">Knowledge Base Builder</div>
+        </div>
+        <div class="header-right">
+            <button id="loginBtn" class="dhl-btn login-btn">Login as Editor</button>
+            <div id="userProfile" class="user-profile hidden">
+                <span class="user-role">Editor Mode</span>
+                <button id="logoutBtn" class="dhl-btn logout-btn">Logout</button>
+            </div>
+        </div>
     </header>
+
+    <div id="conflictAlert" class="conflict-alert hidden">
+        <div class="alert-content">
+            <span class="alert-icon">⚠️</span>
+            <span class="alert-message">Warning: Potential conflict with existing SOP detected (Shared tags >= 2).</span>
+            <button class="alert-close">&times;</button>
+        </div>
+    </div>
 
     <div class="app-container">
         <aside class="sidebar">
+            <div id="editorControls" class="editor-only hidden">
+                <h3>Editor Console</h3>
+                <button id="openUploadModal" class="dhl-btn upload-trigger">Manual Upload</button>
+            </div>
             <h3>Filters</h3>
             <div class="filter-group">
                 <label>Status</label>
-                <select id="statusFilter" title="Filter articles by status"></select>
+                <select id="statusFilter" title="Filter articles by status">
                     <option value="all">All Statuses</option>
                     <option value="Published">Published</option>
                     <option value="Reviewed">Reviewed</option>
@@ -57,6 +78,28 @@
     </div>
 
     <svg id="connectionsLayer" class="connections-layer"></svg>
+
+    <!-- Manual Upload Modal -->
+    <div id="uploadModal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-container">
+            <button class="modal-close">&times;</button>
+            <h3>Manual Document Upload</h3>
+            <p>Drag and drop logistics documents (.txt, .pdf, .docx) to process via AI Transformation.</p>
+            <div id="dropZone" class="drop-zone">
+                <div class="drop-zone-content">
+                    <span class="drop-icon">📂</span>
+                    <span>Click or Drag File Here</span>
+                    <input type="file" id="fileInput" class="hidden" accept=".txt,.pdf,.docx">
+                </div>
+            </div>
+            <div id="uploadProgress" class="upload-progress hidden">
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+                <span class="progress-text">Processing with AI...</span>
+            </div>
+            <div id="uploadStatus" class="upload-status"></div>
+        </div>
+    </div>
 
     <script src="js/model.js"></script>
     <script src="js/view.js"></script>

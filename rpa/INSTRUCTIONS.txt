@@ -1,0 +1,6 @@
+UiPath RPA Integration
+
+1. Open Main.xaml in UiPath Studio.
+2. Ensure the API endpoint points to: http://localhost:3002/api/content
+3. The robot will read files from your Google Drive (DHL Project folder).
+4. Structured data will be sent automatically to this Knowledge Base.

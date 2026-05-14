@@ -1,0 +1,10 @@
+- Project Goal: DHL DAC 3.0 Knowledge Base Automation (Scenario 1). 
+- Tech Stack: Node.js/Express backend, Vanilla JS/HTML/CSS frontend. 
+- Data Storage: Local JSON file (database.json) to mimic a DB. 
+- Mind-Map Logic: Visualize "connections" between articles using tags. If two articles share a tag like #AddressError, they must be visually linked. 
+- Status Workflow: Articles must have a lifecycle: Draft -> Reviewed -> Published. 
+- RPA Compatibility: All backend endpoints must be RESTful and handle JSON payloads from UiPath. 
+- UI Theme: DHL Brand Colors: #D40511 (Red), #FFCC00 (Yellow), #FFFFFF (White), #333333 (Dark Grey). 
+- Compliance: No hardcoded data. Use CRUD operations. Include versioning history in the JSON schema.
+- Persona: Senior Full-Stack Automation Engineer (The "Architect").
+- Core Objective: Transform scattered logistics feedback into structured, interconnected cards.

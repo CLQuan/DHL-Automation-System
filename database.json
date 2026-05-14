@@ -1,0 +1,106 @@
+{
+  "articles": [
+    {
+      "id": "1715673600000",
+      "title": "Initial Address Error Guide",
+      "raw_input": "Customer reported address error for shipment 12345.",
+      "summary": "A guide on how to handle initial address errors reported by customers.",
+      "steps": [
+        "Verify shipment number",
+        "Check customer address",
+        "Update shipment status"
+      ],
+      "tags": [
+        "AddressError",
+        "Support"
+      ],
+      "status": "Published",
+      "history": [
+        {
+          "timestamp": "2026-05-14T10:00:00Z",
+          "action": "Created",
+          "status": "Published"
+        }
+      ]
+    },
+    {
+      "id": "1715673600001",
+      "title": "Last Mile Delivery Delay",
+      "raw_input": "Driver reported heavy traffic in downtown area.",
+      "summary": "Handling delays during the last mile of delivery.",
+      "steps": [
+        "Notify customer",
+        "Reroute if possible",
+        "Update expected arrival time"
+      ],
+      "tags": [
+        "DeliveryDelay",
+        "LastMile"
+      ],
+      "status": "Published",
+      "history": [
+        {
+          "timestamp": "2026-05-14T11:00:00Z",
+          "action": "Created",
+          "status": "Draft"
+        },
+        {
+          "timestamp": "2026-05-14T08:30:37.736Z",
+          "action": "Status changed to Reviewed",
+          "status": "Reviewed"
+        },
+        {
+          "timestamp": "2026-05-14T08:30:46.207Z",
+          "action": "Status changed to Published",
+          "status": "Published"
+        }
+      ]
+    },
+    {
+      "id": "1715673600002",
+      "title": "Address Correction Protocol",
+      "raw_input": "Standard procedure for correcting incorrect shipping addresses.",
+      "summary": "Official protocol for address corrections.",
+      "steps": [
+        "Contact sender",
+        "Verify new address",
+        "Print new label"
+      ],
+      "tags": [
+        "AddressError",
+        "Internal"
+      ],
+      "status": "Reviewed",
+      "history": [
+        {
+          "timestamp": "2026-05-14T12:00:00Z",
+          "action": "Created",
+          "status": "Reviewed"
+        }
+      ]
+    },
+    {
+      "id": "1715673600003",
+      "title": "Customer Support Best Practices",
+      "raw_input": "Tips for interacting with DHL customers.",
+      "summary": "General best practices for support staff.",
+      "steps": [
+        "Be polite",
+        "Use active listening",
+        "Provide clear timelines"
+      ],
+      "tags": [
+        "Support",
+        "CustomerExperience"
+      ],
+      "status": "Published",
+      "history": [
+        {
+          "timestamp": "2026-05-14T13:00:00Z",
+          "action": "Created",
+          "status": "Published"
+        }
+      ]
+    }
+  ]
+}

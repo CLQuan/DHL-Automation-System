@@ -308,6 +308,16 @@ body.focus-mode-active {
     gap: 1.5rem;
 }
 
+.empty-state {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    background: var(--surface-container);
+    border: 1px dashed var(--outline-variant);
+    border-radius: var(--radius-lg);
+    color: var(--on-surface-variant);
+    text-align: center;
+}
+
 .article-card {
     background: var(--surface-container);
     border: 1px solid var(--outline-variant);
@@ -720,6 +730,23 @@ body.focus-mode-active {
     border-top: 1px solid var(--outline-variant);
 }
 
+.editor-actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.delete-btn {
+    border-color: var(--error);
+    color: var(--error);
+}
+
+.delete-btn:hover {
+    background: var(--error);
+    color: var(--on-error);
+}
+
 .status-selector {
     display: flex;
     flex-direction: column;
@@ -1018,7 +1045,15 @@ body.focus-mode-active {
     gap: 1rem;
 }
 
-.drop-icon { font-size: 2.5rem; }
+.drop-icon {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-sm);
+    color: var(--secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
 
 /* Progress & Status */
 .upload-progress {

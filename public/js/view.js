@@ -35,22 +35,38 @@ const View = {
         this.svgLayer.setAttribute('width', window.innerWidth);
         this.svgLayer.setAttribute('height', window.innerHeight);
     },
+
+    escapeHTML(value) {
+        return String(value ?? '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
+    },
     
     renderArticles(articles) {
         this.elements.grid.innerHTML = '';
+        if (articles.length === 0) {
+            this.elements.grid.innerHTML = '<div class="empty-state">No knowledge nodes match the current filters.</div>';
+            return;
+        }
         articles.forEach(article => this.renderCard(article));
     },
     
     renderCard(article) {
         const card = document.createElement('div');
+        const status = this.escapeHTML(article.status || 'Draft');
+        const tags = Array.isArray(article.tags) ? article.tags : [];
         card.className = `article-card ${article.status === 'Published' ? 'published-glow' : ''}`;
         card.dataset.id = article.id;
         card.innerHTML = `
-            <span class="status-badge status-${article.status}">${article.status}</span>
-            <h4>${article.title}</h4>
-            <p>${article.summary || 'No summary available.'}</p>
+            <span class="status-badge status-${status}">${status}</span>
+            <h4>${this.escapeHTML(article.title)}</h4>
+            <p>${this.escapeHTML(article.summary || 'No summary available.')}</p>
             <div class="tag-container">
-                ${article.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                ${tags.map(tag => `<span class="tag">#${this.escapeHTML(tag)}</span>`).join('')}
             </div>
         `;
         this.elements.grid.appendChild(card);
@@ -184,26 +200,30 @@ const View = {
     
     createFocusViewHTML(article, userRole) {
         const isEditor = userRole === 'Editor';
+        const status = this.escapeHTML(article.status || 'Draft');
+        const tags = Array.isArray(article.tags) ? article.tags : [];
+        const steps = Array.isArray(article.steps) ? article.steps : [];
+        const history = Array.isArray(article.history) ? article.history : [];
         return `
             <div class="focus-backdrop"></div>
             <div class="focus-container">
                 <button class="focus-close">&times;</button>
                 <div class="focus-main-card">
-                    <span class="status-badge status-${article.status}">${article.status}</span>
-                    <h2>${article.title}</h2>
-                    <div class="focus-raw-input">${article.raw_input}</div>
-                    <div class="focus-summary">${article.summary}</div>
+                    <span class="status-badge status-${status}">${status}</span>
+                    <h2>${this.escapeHTML(article.title)}</h2>
+                    <div class="focus-raw-input">${this.escapeHTML(article.raw_input || '')}</div>
+                    <div class="focus-summary">${this.escapeHTML(article.summary || '')}</div>
                     <div class="focus-tags">
-                        ${article.tags.map(t => `<span class="tag">#${t}</span>`).join('')}
+                        ${tags.map(t => `<span class="tag">#${this.escapeHTML(t)}</span>`).join('')}
                     </div>
                 </div>
                 <div class="focus-steps-container">
                     <h3>RPA Process Steps</h3>
                     <div class="steps-nodes">
-                        ${article.steps.map((step, i) => `
+                        ${steps.map((step, i) => `
                             <div class="step-node" data-step="${i + 1}">
                                 <div class="step-number">${i + 1}</div>
-                                <div class="step-label">${step}</div>
+                                <div class="step-label">${this.escapeHTML(step)}</div>
                             </div>
                         `).join('')}
                     </div>
@@ -211,11 +231,11 @@ const View = {
                 <div class="focus-history">
                     <h3>Version History</h3>
                     <ul>
-                        ${article.history.map(h => `
+                        ${history.map(h => `
                             <li>
                                 <span class="history-time">${new Date(h.timestamp).toLocaleString()}</span>
-                                <span class="history-action">${h.action}</span>
-                                <span class="status-badge status-${h.status}">${h.status}</span>
+                                <span class="history-action">${this.escapeHTML(h.action)}</span>
+                                <span class="status-badge status-${this.escapeHTML(h.status)}">${this.escapeHTML(h.status)}</span>
                             </li>
                         `).join('')}
                     </ul>

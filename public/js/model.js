@@ -17,6 +17,12 @@ const Model = {
     },
     
     async uploadFile(file) {
+        const allowedExtensions = ['.txt', '.md', '.csv', '.json'];
+        const extension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+        if (!allowedExtensions.includes(extension)) {
+            throw new Error('Only text-based uploads are supported: .txt, .md, .csv, .json');
+        }
+
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -58,7 +64,7 @@ const Model = {
             return updated;
         } catch (err) {
             console.error('Model update error:', err);
-            return null;
+            throw err;
         }
     },
     
@@ -76,7 +82,7 @@ const Model = {
             return true;
         } catch (err) {
             console.error('Model delete error:', err);
-            return false;
+            throw err;
         }
     },
     
@@ -106,9 +112,11 @@ const Model = {
     },
     
     getRelated(article) {
+        const articleTags = Array.isArray(article.tags) ? article.tags : [];
         return this.articles.filter(a => 
             a.id !== article.id && 
-            a.tags.some(tag => article.tags.includes(tag))
+            Array.isArray(a.tags) &&
+            a.tags.some(tag => articleTags.includes(tag))
         );
     },
     
@@ -116,13 +124,15 @@ const Model = {
         // Scenario 1 & Bonus 5.3: Check if new draft shares > 2 tags with existing Published articles
         const published = this.articles.filter(a => a.status === 'Published');
         return published.filter(p => {
-            const sharedTags = p.tags.filter(t => tags.includes(t));
+            const publishedTags = Array.isArray(p.tags) ? p.tags : [];
+            const inputTags = Array.isArray(tags) ? tags : [];
+            const sharedTags = publishedTags.filter(t => inputTags.includes(t));
             return sharedTags.length >= 2;
         });
     },
     
     getAllTags() {
         const visible = this.getVisibleArticles();
-        return [...new Set(visible.flatMap(a => a.tags))];
+        return [...new Set(visible.flatMap(a => Array.isArray(a.tags) ? a.tags : []))];
     }
 };

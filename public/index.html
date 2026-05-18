@@ -23,7 +23,7 @@
 
     <div id="conflictAlert" class="conflict-alert hidden">
         <div class="alert-content">
-            <span class="alert-icon">⚠️</span>
+            <span class="alert-icon">!</span>
             <span class="alert-message">Warning: Potential conflict with existing SOP detected (Shared tags >= 2).</span>
             <button class="alert-close">&times;</button>
         </div>
@@ -85,12 +85,12 @@
         <div class="modal-container">
             <button class="modal-close">&times;</button>
             <h3>Manual Document Upload</h3>
-            <p>Drag and drop logistics documents (.txt, .pdf, .docx) to process via AI Transformation.</p>
+            <p>Drag and drop text-based logistics documents (.txt, .md, .csv, .json) to process via AI Transformation.</p>
             <div id="dropZone" class="drop-zone">
                 <div class="drop-zone-content">
-                    <span class="drop-icon">📂</span>
+                    <span class="drop-icon">FILE</span>
                     <span>Click or Drag File Here</span>
-                    <input type="file" id="fileInput" class="hidden" accept=".txt,.pdf,.docx">
+                    <input type="file" id="fileInput" class="hidden" accept=".txt,.md,.csv,.json">
                 </div>
             </div>
             <div id="uploadProgress" class="upload-progress hidden">

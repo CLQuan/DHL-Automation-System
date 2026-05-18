@@ -27,7 +27,7 @@ const Presenter = {
     renderFilteredArticles() {
         let filtered = Model.getVisibleArticles(this.statusFilter);
         if (this.activeTagFilter) {
-            filtered = filtered.filter(a => a.tags.includes(this.activeTagFilter));
+            filtered = filtered.filter(a => Array.isArray(a.tags) && a.tags.includes(this.activeTagFilter));
         }
         View.renderArticles(filtered);
         this.attachCardEvents();
